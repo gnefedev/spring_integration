@@ -34,27 +34,35 @@
                                             channel="inputChannel"/>
 
 
-    <service-activator input-channel="inputChannel"
-                       output-channel="storageMessages"
-                       ref="storageService"
-                       method="storeInDB"/>
+    <service-activator input-channel="inputChannel" output-channel="storageMessages"
+                       ref="storageService" method="storeInDB"/>
+
 
 
     <chain input-channel="businessChannel" output-channel="outputChannel">
+        <service-activator ref="storageService" method="findAndLockMessage"/>
         <header-enricher>
-            <header name="loggedMessageId" expression="payload.getId()"/>
+            <header name="loggedMessage" expression="payload"/>
         </header-enricher>
+        <service-activator expression="payload.incrementTry()"/>
+
         <transformer ref="businessService" method="doSomething"/>
         <int-xml:marshalling-transformer marshaller="xmlMarshaller" result-type="StringResult" />
         <transformer expression="payload.toString()"/>
-        <service-activator ref="storageService" method="markAsSuccess"/>
+
+        <service-activator ref="storageService" method="markAsSuccessAndUpdate"/>
     </chain>
+
+    <int-jms:outbound-channel-adapter id="jmsOut" destination="queueOut" channel="outputChannel"/>
 
     <service-activator input-channel="failed"
             ref="storageService" method="markAsError"/>
 
+    <inbound-channel-adapter ref="storageService" method="getNotSucceed" channel="storageMessages">
+        <poller fixed-delay="1000"/>
+    </inbound-channel-adapter>
+
     <stream:stderr-channel-adapter channel="errorChannel" append-newline="true" />
 
-    <int-jms:outbound-channel-adapter id="jmsOut" destination="queueOut" channel="outputChannel"/>
 
 </beans:beans>

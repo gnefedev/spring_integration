@@ -66,7 +66,7 @@ public class StandardScenario {
 
         LoggedMessage loggedMessage = getLoggedMessage();
         assertEquals(true, loggedMessage.isSuccess());
-
+        assertEquals(1, loggedMessage.getTryCount());
     }
 
     private LoggedMessage getLoggedMessage() {

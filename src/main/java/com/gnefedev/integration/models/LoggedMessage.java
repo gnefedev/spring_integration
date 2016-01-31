@@ -18,6 +18,21 @@ public class LoggedMessage {
 
     private String error;
 
+    private int tryCount = 0;
+
+    public LoggedMessage incrementTry() {
+        setTryCount(getTryCount() + 1);
+        return this;
+    }
+
+    public int getTryCount() {
+        return tryCount;
+    }
+
+    private void setTryCount(int tryCount) {
+        this.tryCount = tryCount;
+    }
+
     public String getError() {
         return error;
     }
@@ -32,8 +47,9 @@ public class LoggedMessage {
         return success;
     }
 
-    public void setSuccess(boolean success) {
+    public LoggedMessage setSuccess(boolean success) {
         this.success = success;
+        return this;
     }
 
     public int getId() {

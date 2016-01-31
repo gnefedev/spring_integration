@@ -4,7 +4,6 @@ import com.gnefedev.integration.config.AppConfig;
 import com.gnefedev.integration.models.LoggedMessage;
 import com.gnefedev.integration.persistence.LoggedMessageRepository;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -18,6 +17,7 @@ import javax.jms.Destination;
 import javax.transaction.Transactional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Created by gerakln on 30.01.16.
@@ -42,13 +42,13 @@ public class ScenarioWithError {
 
     @Test
     public void test1SendMessage() {
-        jmsTemplate.convertAndSend(queueIn, BusinessServiceInterceptor.MESSAGE_FOR_ERROR);
+        jmsTemplate.convertAndSend(queueIn, ErrorScenarioInterceptor.MESSAGE_FOR_ERROR);
     }
 
     @Test
     public void test2CheckStoredMessage() {
         LoggedMessage loggedMessage = getLoggedMessage();
-        assertEquals(BusinessServiceInterceptor.MESSAGE_FOR_ERROR, loggedMessage.getMessage());
+        assertEquals(ErrorScenarioInterceptor.MESSAGE_FOR_ERROR, loggedMessage.getMessage());
     }
 
     @Transactional
@@ -63,10 +63,37 @@ public class ScenarioWithError {
 
         LoggedMessage loggedMessage = getLoggedMessage();
         assertEquals(false, loggedMessage.isSuccess());
-        assertEquals(BusinessServiceInterceptor.EXCEPTION_MESSAGE, loggedMessage.getError());
+        assertEquals(1, loggedMessage.getTryCount());
+        assertEquals(ErrorScenarioInterceptor.EXCEPTION_MESSAGE, loggedMessage.getError());
     }
 
+    @Test
+    public void test4dbPoller() throws InterruptedException {
+        LoggedMessage loggedMessage = getLoggedMessage();
+        assertEquals(false, loggedMessage.isSuccess());
+        loggedMessage.setMessage(ErrorScenarioInterceptor.MESSAGE_FOR_ERROR + " changed");
+        loggedMessageRepository.save(loggedMessage);
+        ErrorScenarioInterceptor.setPullNotSucceed(true);
+
+        Thread.sleep(1500);
+        jmsTemplate.setReceiveTimeout(1000);
+
+        String resultMessage = (String) jmsTemplate.receiveAndConvert(queueOut);
+        assertNotNull(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                        "<resultMessage>" +
+                        "<message>Message for error changed</message>" +
+                        "<name>George</name>" +
+                        "</resultMessage>",
+                resultMessage
+        );
+
+        jmsTemplate.setReceiveTimeout(0);
+
+    }
+
+
     private LoggedMessage getLoggedMessage() {
-        return loggedMessageRepository.findByMessage(BusinessServiceInterceptor.MESSAGE_FOR_ERROR);
+        return loggedMessageRepository.findByMessage(ErrorScenarioInterceptor.MESSAGE_FOR_ERROR);
     }
 }
