@@ -3,6 +3,8 @@ package com.gnefedev.integration.services;
 import com.gnefedev.integration.models.LoggedMessage;
 import com.gnefedev.integration.persistence.LoggedMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
@@ -22,5 +24,12 @@ public class StorageService {
         loggedMessage.setMessage(message);
         loggedMessageRepository.save(loggedMessage);
         return loggedMessage;
+    }
+
+    public Message markAsSuccess (Message message, @Header(name = "loggedMessageId", required = true) int id) {
+        LoggedMessage loggedMessage = loggedMessageRepository.findOne(id);
+        loggedMessage.setSuccess(true);
+        loggedMessageRepository.save(loggedMessage);
+        return message;
     }
 }

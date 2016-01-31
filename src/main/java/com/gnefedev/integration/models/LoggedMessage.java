@@ -9,16 +9,22 @@ import javax.xml.bind.annotation.*;
  * Created by gerakln on 31.01.16.
  */
 @Entity
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class LoggedMessage {
     @GeneratedValue
     @Id
-    @XmlAttribute
     private int id;
 
-    @XmlElement
     private String message;
+
+    private boolean success = false;
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
 
     public int getId() {
         return id;

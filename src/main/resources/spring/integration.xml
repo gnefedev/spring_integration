@@ -33,9 +33,13 @@
 
 
     <chain input-channel="businessChannel" output-channel="outputChannel">
+        <header-enricher>
+            <header name="loggedMessageId" expression="payload.getId()"/>
+        </header-enricher>
         <transformer ref="businessService" method="doSomething"/>
         <int-xml:marshalling-transformer marshaller="xmlMarshaller" result-type="StringResult" />
         <transformer expression="payload.toString()"/>
+        <service-activator ref="storageService" method="markAsSuccess"/>
     </chain>
 
     <int-jms:outbound-channel-adapter id="jmsOut" destination="queueOut" channel="outputChannel"/>

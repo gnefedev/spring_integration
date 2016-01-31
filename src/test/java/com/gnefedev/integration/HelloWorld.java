@@ -1,6 +1,7 @@
 package com.gnefedev.integration;
 
 import com.gnefedev.integration.config.AppConfig;
+import com.gnefedev.integration.models.LoggedMessage;
 import com.gnefedev.integration.persistence.LoggedMessageRepository;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -45,8 +46,8 @@ public class HelloWorld {
 
     @Test
     public void test2CheckStoredMessage() {
-        String message = loggedMessageRepository.findAll().iterator().next().getMessage();
-        assertEquals("Hello World!!!", message);
+        LoggedMessage loggedMessage = loggedMessageRepository.findAll().iterator().next();
+        assertEquals("Hello World!!!", loggedMessage.getMessage());
     }
 
     @Transactional
@@ -54,15 +55,19 @@ public class HelloWorld {
     public void test3ReceiveMessage() {
         jmsTemplate.setReceiveTimeout(1000);
 
-        String message = (String) jmsTemplate.receiveAndConvert(queueOut);
+        String resultMessage = (String) jmsTemplate.receiveAndConvert(queueOut);
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
                         "<resultMessage>" +
                         "<message>Hello World!!!</message>" +
                         "<name>George</name>" +
                         "</resultMessage>",
-                message);
+                resultMessage);
 
         jmsTemplate.setReceiveTimeout(0);
+
+        LoggedMessage loggedMessage = loggedMessageRepository.findAll().iterator().next();
+        assertEquals(true, loggedMessage.isSuccess());
+
     }
 }
