@@ -56,7 +56,12 @@ public class HelloWorld {
         jmsTemplate.setReceiveTimeout(1000);
 
         String message = (String) jmsTemplate.receiveAndConvert(queueOut);
-        assertEquals("Hello World!!! I'm George", message);
+        assertEquals(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                        "<loggedMessage id=\"1\">" +
+                        "<message>Hello World!!! I'm George</message>" +
+                        "</loggedMessage>",
+                message);
 
         jmsTemplate.setReceiveTimeout(0);
     }

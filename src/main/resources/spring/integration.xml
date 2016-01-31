@@ -34,8 +34,8 @@
 
     <chain input-channel="businessChannel" output-channel="outputChannel">
         <transformer ref="businessService" method="doSomething"/>
-        <!--<int-xml:marshalling-transformer marshaller="xmlMarshaller" result-type="StringResult" />-->
-        <transformer expression="payload.getMessage()"/>
+        <int-xml:marshalling-transformer marshaller="xmlMarshaller" result-type="StringResult" />
+        <transformer expression="payload.toString()"/>
     </chain>
 
     <int-jms:outbound-channel-adapter id="jmsOut" destination="queueOut" channel="outputChannel"/>
