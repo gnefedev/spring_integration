@@ -1,7 +1,6 @@
 package com.gnefedev.integration;
 
 import com.gnefedev.integration.config.AppConfig;
-import com.gnefedev.integration.persistence.LoggedMessage;
 import com.gnefedev.integration.persistence.LoggedMessageRepository;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -58,9 +57,10 @@ public class HelloWorld {
         String message = (String) jmsTemplate.receiveAndConvert(queueOut);
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                        "<loggedMessage id=\"1\">" +
-                        "<message>Hello World!!! I'm George</message>" +
-                        "</loggedMessage>",
+                        "<resultMessage>" +
+                        "<message>Hello World!!!</message>" +
+                        "<name>George</name>" +
+                        "</resultMessage>",
                 message);
 
         jmsTemplate.setReceiveTimeout(0);

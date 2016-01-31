@@ -1,4 +1,4 @@
-package com.gnefedev.integration.persistence;
+package com.gnefedev.integration.models;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

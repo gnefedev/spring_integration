@@ -1,6 +1,7 @@
 package com.gnefedev.integration.services;
 
-import com.gnefedev.integration.persistence.LoggedMessage;
+import com.gnefedev.integration.models.LoggedMessage;
+import com.gnefedev.integration.models.ResultMessage;
 import org.springframework.stereotype.Component;
 
 /**
@@ -8,9 +9,10 @@ import org.springframework.stereotype.Component;
  */
 @Component("businessService")
 public class BusinessService {
-    public LoggedMessage doSomething(LoggedMessage message) {
-//        throw new RuntimeException();
-        message.setMessage(message.getMessage() + " I'm George");
-        return message;
+    public ResultMessage doSomething(LoggedMessage loggedMessage) {
+        ResultMessage resultMessage = new ResultMessage();
+        resultMessage.setMessage(loggedMessage.getMessage());
+        resultMessage.setName("George");
+        return resultMessage;
     }
 }

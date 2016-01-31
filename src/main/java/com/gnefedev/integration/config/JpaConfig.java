@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @Configuration
 @EnableJpaRepositories(basePackages = "com.gnefedev.integration.persistence")
-@EntityScan(basePackages = "com.gnefedev.integration.persistence")
+@EntityScan(basePackages = "com.gnefedev.integration.models")
 public class JpaConfig {
 
 }
