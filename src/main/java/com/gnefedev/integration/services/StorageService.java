@@ -4,7 +4,9 @@ import com.gnefedev.integration.models.LoggedMessage;
 import com.gnefedev.integration.persistence.LoggedMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
@@ -31,5 +33,22 @@ public class StorageService {
         loggedMessage.setSuccess(true);
         loggedMessageRepository.save(loggedMessage);
         return message;
+    }
+
+    public void markAsError(ErrorMessage errorMessage) {
+        MessagingException error = (MessagingException) errorMessage.getPayload();
+        LoggedMessage loggedMessage = (LoggedMessage) error.getFailedMessage().getPayload();
+        loggedMessage = loggedMessageRepository.findOne(loggedMessage.getId());
+        loggedMessage.setError(getCause(error).getMessage());
+        loggedMessage.setSuccess(false);
+        loggedMessageRepository.save(loggedMessage);
+    }
+
+    private Throwable getCause(MessagingException errorMessage) {
+        if(errorMessage.getCause() instanceof MessagingException) {
+            return getCause((MessagingException) errorMessage.getCause());
+        } else {
+            return errorMessage.getCause();
+        }
     }
 }

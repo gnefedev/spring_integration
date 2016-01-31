@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface LoggedMessageRepository extends CrudRepository<LoggedMessage, Integer> {
+    public LoggedMessage findByMessage(String message);
 }

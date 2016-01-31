@@ -1,9 +1,10 @@
-package com.gnefedev.integration;
+package com.gnefedev.integration.test;
 
 import com.gnefedev.integration.config.AppConfig;
 import com.gnefedev.integration.models.LoggedMessage;
 import com.gnefedev.integration.persistence.LoggedMessageRepository;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -16,15 +17,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.jms.Destination;
 import javax.transaction.Transactional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by gerakln on 30.01.16.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = AppConfig.class)
-public class HelloWorld {
+@ContextConfiguration(classes = {AppConfig.class, TestConfig.class})
+public class ScenarioWithError {
     @Qualifier("queueIn")
     @Autowired
     private Destination queueIn;
@@ -41,13 +42,13 @@ public class HelloWorld {
 
     @Test
     public void test1SendMessage() {
-        jmsTemplate.convertAndSend(queueIn, "Hello World!!!");
+        jmsTemplate.convertAndSend(queueIn, BusinessServiceInterceptor.MESSAGE_FOR_ERROR);
     }
 
     @Test
     public void test2CheckStoredMessage() {
-        LoggedMessage loggedMessage = loggedMessageRepository.findAll().iterator().next();
-        assertEquals("Hello World!!!", loggedMessage.getMessage());
+        LoggedMessage loggedMessage = getLoggedMessage();
+        assertEquals(BusinessServiceInterceptor.MESSAGE_FOR_ERROR, loggedMessage.getMessage());
     }
 
     @Transactional
@@ -56,18 +57,16 @@ public class HelloWorld {
         jmsTemplate.setReceiveTimeout(1000);
 
         String resultMessage = (String) jmsTemplate.receiveAndConvert(queueOut);
-        assertEquals(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                        "<resultMessage>" +
-                        "<message>Hello World!!!</message>" +
-                        "<name>George</name>" +
-                        "</resultMessage>",
-                resultMessage);
+        assertEquals(null, resultMessage);
 
         jmsTemplate.setReceiveTimeout(0);
 
-        LoggedMessage loggedMessage = loggedMessageRepository.findAll().iterator().next();
-        assertEquals(true, loggedMessage.isSuccess());
+        LoggedMessage loggedMessage = getLoggedMessage();
+        assertEquals(false, loggedMessage.isSuccess());
+        assertEquals(BusinessServiceInterceptor.EXCEPTION_MESSAGE, loggedMessage.getError());
+    }
 
+    private LoggedMessage getLoggedMessage() {
+        return loggedMessageRepository.findByMessage(BusinessServiceInterceptor.MESSAGE_FOR_ERROR);
     }
 }

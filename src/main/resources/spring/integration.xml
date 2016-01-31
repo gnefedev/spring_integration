@@ -5,6 +5,7 @@
              xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
              xmlns:int="http://www.springframework.org/schema/integration"
              xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+             xmlns:stream="http://www.springframework.org/schema/integration/stream"
              xsi:schemaLocation="http://www.springframework.org/schema/beans
                   http://www.springframework.org/schema/beans/spring-beans.xsd
                   http://www.springframework.org/schema/integration
@@ -13,12 +14,19 @@
                   http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
                   http://www.springframework.org/schema/integration/xml
                   http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd
+                  http://www.springframework.org/schema/integration/stream
+			      http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
                   ">
     <channel id="inputChannel"/>
-    <channel id="businessChannel">
-        <dispatcher/>
+    <channel id="storageMessages">
+        <queue/>
     </channel>
+    <bridge input-channel="storageMessages" output-channel="businessChannel">
+        <poller fixed-rate="0" error-channel="failed"/>
+    </bridge>
+    <channel id="businessChannel"/>
     <channel id="outputChannel"/>
+    <channel id="failed"/>
 
     <int-jms:message-driven-channel-adapter id="jmsInAdapter"
                                             connection-factory="connectionFactory"
@@ -27,7 +35,7 @@
 
 
     <service-activator input-channel="inputChannel"
-                       output-channel="businessChannel"
+                       output-channel="storageMessages"
                        ref="storageService"
                        method="storeInDB"/>
 
@@ -41,6 +49,11 @@
         <transformer expression="payload.toString()"/>
         <service-activator ref="storageService" method="markAsSuccess"/>
     </chain>
+
+    <service-activator input-channel="failed"
+            ref="storageService" method="markAsError"/>
+
+    <stream:stderr-channel-adapter channel="errorChannel" append-newline="true" />
 
     <int-jms:outbound-channel-adapter id="jmsOut" destination="queueOut" channel="outputChannel"/>
 

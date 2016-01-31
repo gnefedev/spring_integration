@@ -16,6 +16,16 @@ public class LoggedMessage {
 
     private String message;
 
+    private String error;
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
     private boolean success = false;
 
     public boolean isSuccess() {
